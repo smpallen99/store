@@ -130,6 +130,32 @@ defmodule Store.Repo.Migrations.CreateCoherenceUser do
 end
 ```
 
+Add the admin field to user model
+
+```elixir
+# web/models/coherence/user.ex
+defmodule Store.User do
+  use Store.Web, :model
+  use Coherence.Schema
+
+  schema "users" do
+    field :name, :string
+    field :email, :string
+    field :admin, :boolean, default: false   # add this
+    coherence_schema
+
+    timestamps
+  end
+
+  def changeset(model, params \\ %{}) do
+    model
+    |> cast(params, [:name, :email, :admin] ++ coherence_fields)  # add :admin here
+    |> validate_required([:name, :email])
+    |> unique_constraint(:email)
+    |> validate_coherence(params)
+  end
+end
+```
 Follow the instructions printed by `mix coherence.install`
 
 Update the routes:
@@ -178,8 +204,7 @@ defmodule Store.Router do
   scope "/", Store do
     pipe_through :browser
     get "/", PageController, :index
-    get "/products", ProductController, :index
-    get "/products/:id", ProductController, :show
+    resources "/products", ProductController, only: [:index, :show]
   end
 
   scope "/", Store do
@@ -198,7 +223,7 @@ alias Store.{Repo, Product, User}
 ...
 Repo.delete_all User
 
-User.changeset(%User{}, %{name: "Admin User", email: "admin@example.com", password: "secret", password_confirmation: "secret"})
+User.changeset(%User{}, %{name: "Admin User", email: "admin@example.com", password: "secret", password_confirmation: "secret", admin: true})
 |> Store.Repo.insert!
 |> Coherence.ControllerHelpers.confirm!
 

@@ -15,7 +15,7 @@ alias Store.{Repo, Product, User}
 Repo.delete_all Product
 Repo.delete_all User
 
-User.changeset(%User{}, %{name: "Admin User", email: "admin@example.com", password: "secret", password_confirmation: "secret"})
+User.changeset(%User{}, %{name: "Admin User", email: "admin@example.com", password: "secret", password_confirmation: "secret", admin: true})
 |> Store.Repo.insert!
 |> Coherence.ControllerHelpers.confirm!
 
