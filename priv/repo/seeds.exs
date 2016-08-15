@@ -10,9 +10,18 @@
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
 
-alias Store.{Repo, Product}
+alias Store.{Repo, Product, User}
 
 Repo.delete_all Product
+Repo.delete_all User
+
+User.changeset(%User{}, %{name: "Admin User", email: "admin@example.com", password: "secret", password_confirmation: "secret"})
+|> Store.Repo.insert!
+|> Coherence.ControllerHelpers.confirm!
+
+User.changeset(%User{}, %{name: "Test User", email: "user@example.com", password: "secret", password_confirmation: "secret"})
+|> Store.Repo.insert!
+|> Coherence.ControllerHelpers.confirm!
 
 attributes = ~w(name description department price)a
 

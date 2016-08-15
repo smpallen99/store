@@ -71,8 +71,19 @@ Add the Coherence Dependency
 # mix.exs
   def deps do
     ...
-    {:coherence, "~> 0.2"}
+     {:coherence, github: "smpallen99/coherence"}
     ...
+  end
+```
+
+Add the coherence application
+
+```elixir
+# mix.exs
+  def application do
+    [mod: {Store, []},
+     applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger, :gettext,
+                    :phoenix_ecto, :postgrex, :coherence]]
   end
 ```
 
@@ -82,3 +93,116 @@ Get and compile deps
 $ mix do deps.get, deps.compile
 ```
 
+Checkout the coherence installer help
+
+```shell
+$ mix help coherence.install
+```
+
+Install the `--full-confirmable` option. This installs the following Coherence options:
+
+* :authenticatable -- Add or modify user model for authentication
+* :recoverable -- Support password recovery
+* :lockable  -- Lock account after x failed login attempts
+* :trackable -- Add last login IP and timestamps
+* :unlockable_with_token - Support unlock link with token
+* :confirmable  - Require account to be confirmed before logging in
+* :registerable - Support registrations
+
+```shell
+$ mix coherence.install --full-confirmable
+```
+
+For this example, we are going to use a simple authorization approach to allow admin account to be able to add/modify/delete products. So, lets add an `admin` boolean field to the user model before running the migration.
+
+```elixir
+# priv/repo/migrations/xxx_create_coherence_user.exs
+defmodule Store.Repo.Migrations.CreateCoherenceUser do
+  use Ecto.Migration
+  def change do
+    create table(:users) do
+      ...
+      add :admin, :boolean, default: false
+      ...
+    end
+    ...
+  end
+end
+```
+
+Follow the instructions printed by `mix coherence.install`
+
+Update the routes:
+
+We are going to add the coherence routes as well as setup the product routes so that index and show routes can be used by anyone, but the remaining routes will require login.
+
+```elixir
+defmodule Store.Router do
+  use Store.Web, :router
+  use Coherence.Router
+
+  pipeline :browser do
+    plug :accepts, ["html"]
+    plug :fetch_session
+    plug :fetch_flash
+    plug :protect_from_forgery
+    plug :put_secure_browser_headers
+    plug Coherence.Authentication.Session  # Add this
+  end
+
+  pipeline :protected do
+    plug :accepts, ["html"]
+    plug :fetch_session
+    plug :fetch_flash
+    plug :protect_from_forgery
+    plug :put_secure_browser_headers
+    plug Coherence.Authentication.Session, protected: true    # Add this
+  end
+
+  pipeline :api do
+    plug :accepts, ["json"]
+  end
+
+  # Add this block
+  scope "/" do
+    pipe_through :browser
+    coherence_routes
+  end
+
+  # Add this block
+  scope "/" do
+    pipe_through :protected
+    coherence_routes :protected
+  end
+
+  scope "/", Store do
+    pipe_through :browser
+    get "/", PageController, :index
+    get "/products", ProductController, :index
+    get "/products/:id", ProductController, :show
+  end
+
+  scope "/", Store do
+    pipe_through :protected
+    # Add your protected routes here
+    resources "/products", ProductController, except: [:index, :show]
+  end
+end
+```
+
+Add a couple users to your seeds file
+
+```elixir
+alias Store.{Repo, Product, User}
+
+...
+Repo.delete_all User
+
+User.changeset(%User{}, %{name: "Admin User", email: "admin@example.com", password: "secret", password_confirmation: "secret"})
+|> Store.Repo.insert!
+|> Coherence.ControllerHelpers.confirm!
+
+User.changeset(%User{}, %{name: "Test User", email: "user@example.com", password: "secret", password_confirmation: "secret"})
+|> Store.Repo.insert!
+|> Coherence.ControllerHelpers.confirm!```
+...
