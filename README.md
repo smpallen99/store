@@ -1,20 +1,65 @@
 # Store
 
-To start your Phoenix app:
+A Coherence and Whatwasit Demonstration project.
 
-  * Install dependencies with `mix deps.get`
-  * Create and migrate your database with `mix ecto.create && mix ecto.migrate`
-  * Install Node.js dependencies with `npm install`
-  * Start Phoenix endpoint with `mix phoenix.server`
+## Step 1 - Create the Product Model
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+Generate the model and scaffolding
 
-Ready to run in production? Please [check our deployment guides](http://www.phoenixframework.org/docs/deployment).
+```shell
+$ mix phoenix.gen.html Product products name description department price:decimal
+```
 
-## Learn more
+Update the routes:
 
-  * Official website: http://www.phoenixframework.org/
-  * Guides: http://phoenixframework.org/docs/overview
-  * Docs: https://hexdocs.pm/phoenix
-  * Mailing list: http://groups.google.com/group/phoenix-talk
-  * Source: https://github.com/phoenixframework/phoenix
+```elixir
+# web/router.ex
+  ...
+  scope "/", Store do
+    pipe_through :browser # Use the default browser stack
+
+    get "/", PageController, :index
+    resources "/products", ProductController  # add this
+  end
+  ...
+```
+
+Run the migration:
+
+```shell
+$ mix ecto.migrate
+```
+
+Add some seed data:
+
+```elixir
+# priv/repo/seeds.exs
+alias Store.{Repo, Product}
+
+Repo.delete_all Product
+
+attributes = ~w(name description department price)a
+
+products = [
+  ["Programming Elixir", "You want to explore functional programming, but are put off by the academic feel (tell me about monads just one more time). ", "Books", Decimal.new(46.82)],
+  ["Elixir in Action", "Elixir in Action teaches you to apply the new Elixir programming language to practical problems associated with scalability, concurrency, fault tolerance, and high availability.", "Books", Decimal.new(48.27)],
+  ["BeagleBone Black", "BBB Hardware", "electronics", Decimal.new(117.22)],
+  ["Raspberry Pi 3 Model B Board", "Quad-Core Broadcom BCM2837 64bit ARMv8 processor 1.2GHz", "Electronics", Decimal.new(57.49)],
+  ["Samsung Galaxy S7 G930F 32GB", "Factory Unlocked GSM Smartphone International Version No Warranty (Black)", "Cell Phones", Decimal.new(799.00)],
+]
+
+for product <- products do
+  attrs = Enum.zip(attributes, product) |> Enum.into(%{})
+  Repo.insert! Product.changeset(%Product{}, attrs)
+end
+```
+
+Seed the database and run the server
+
+```shell
+$ mix run priv/repo/seeds.exs
+$ iex -S mix phoenix.server
+```
+
+Test the Product Model by loading `http:/localhost/products` in your browser
+
