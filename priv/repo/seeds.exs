@@ -17,8 +17,11 @@ Repo.delete_all Product
 attributes = ~w(name description department price)a
 
 products = [
-  ["Programming Elixir", "Great book", "books", Decimal.new(19.99)],
-  ["BeagleBone Black", "BBB Hardware", "computers", Decimal.new(89.99)]
+  ["Programming Elixir", "You want to explore functional programming, but are put off by the academic feel (tell me about monads just one more time). ", "Books", Decimal.new(46.82)],
+  ["Elixir in Action", "Elixir in Action teaches you to apply the new Elixir programming language to practical problems associated with scalability, concurrency, fault tolerance, and high availability.", "Books", Decimal.new(48.27)],
+  ["BeagleBone Black", "BBB Hardware", "electronics", Decimal.new(117.22)],
+  ["Raspberry Pi 3 Model B Board", "Quad-Core Broadcom BCM2837 64bit ARMv8 processor 1.2GHz", "Electronics", Decimal.new(57.49)],
+  ["Samsung Galaxy S7 G930F 32GB", "Factory Unlocked GSM Smartphone International Version No Warranty (Black)", "Cell Phones", Decimal.new(799.00)],
 ]
 
 for product <- products do
