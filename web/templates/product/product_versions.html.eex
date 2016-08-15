@@ -1,0 +1,25 @@
+<h3>Versions</h3>
+<table class="table">
+  <thead>
+    <tr>
+      <th>Action</th>
+      <th>User</th>
+      <th>Name</th>
+      <th>Description</th>
+      <th>Department</th>
+      <th>Price</th>
+    </tr>
+  </thead>
+  <tbody>
+    <%= for version <- Store.Version.versions(@product) do %>
+      <tr>
+        <td><%= version[:action] %>
+        <td><%= version[:name] %>
+        <td><%= version.object.name %>
+        <td><%= version.object.description %>
+        <td><%= version.object.department %>
+        <td><%= version.object.price %>
+      </td>
+    <% end %>
+  </tbody>
+</table>

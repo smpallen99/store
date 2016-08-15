@@ -42,7 +42,7 @@ defmodule Store.ProductController do
 
   def update(conn, %{"id" => id, "product" => product_params}) do
     product = Repo.get!(Product, id)
-    changeset = Product.changeset(product, product_params)
+    changeset = Product.changeset(product, product_params, whodoneit(conn))
 
     case Repo.update(changeset) do
       {:ok, product} ->
@@ -55,14 +55,21 @@ defmodule Store.ProductController do
   end
 
   def delete(conn, %{"id" => id}) do
-    product = Repo.get!(Product, id)
+    changeset = Repo.get!(Product, id)
+    |> Product.changeset(%{}, whodoneit(conn))
 
-    # Here we use delete! (with a bang) because we expect
-    # it to always work (and if it does not, it will raise).
-    Repo.delete!(product)
+    Repo.delete!(changeset)
 
     conn
     |> put_flash(:info, "Product deleted successfully.")
     |> redirect(to: product_path(conn, :index))
+  end
+
+  defp whodoneit(conn) do
+    # remove the password fields
+    whodoneit = Coherence.current_user(conn)
+    |> Store.Whatwasit.Version.remove_fields(
+       ~w(password password_confirmation password_hash)a)
+    [whodoneit: whodoneit]
   end
 end

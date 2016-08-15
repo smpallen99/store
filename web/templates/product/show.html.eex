@@ -21,8 +21,11 @@
     <strong>Price:</strong>
     <%= @product.price %>
   </li>
-
 </ul>
+
+<%= if admin?(@conn) do %>
+  <%= render "product_versions.html", [product: @product] %>
+<% end %>
 
 <%= if authorized?(@conn, :edit) do %>
   <%= link "Edit", to: product_path(@conn, :edit, @product) %>

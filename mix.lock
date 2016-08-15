@@ -34,4 +34,5 @@
   "timex": {:hex, :timex, "2.2.1", "0d69012a7fd69f4cbdaa00cc5f2a5f30f1bed56072fb362ed4bddf60db343022", [:mix], [{:combine, "~> 0.7", [hex: :combine, optional: false]}, {:gettext, "~> 0.10", [hex: :gettext, optional: false]}, {:tzdata, "~> 0.1.8 or ~> 0.5", [hex: :tzdata, optional: false]}]},
   "timex_ecto": {:hex, :timex_ecto, "1.1.3", "7a53a0781db7b15de604ffe244c7ed5347bdbf6ce045f6a8fc492f4994a1e32b", [:mix], [{:ecto, "~> 1.1 or ~> 2.0 or ~> 2.0.0-rc3", [hex: :ecto, optional: false]}, {:timex, "~> 2.1", [hex: :timex, optional: false]}]},
   "tzdata": {:hex, :tzdata, "0.5.9", "575be217b039057a47e133b72838cbe104fb5329b19906ea4e66857001c37edb", [:mix], [{:hackney, "~> 1.0", [hex: :hackney, optional: false]}]},
-  "uuid": {:hex, :uuid, "1.1.4", "36c7734e4c8e357f2f67ba57fb61799d60c20a7f817b104896cca64b857e3686", [:mix], []}}
+  "uuid": {:hex, :uuid, "1.1.4", "36c7734e4c8e357f2f67ba57fb61799d60c20a7f817b104896cca64b857e3686", [:mix], []},
+  "whatwasit": {:git, "https://github.com/smpallen99/whatwasit.git", "0629f1891d209c43296210eabc3ec19ceace96b3", []}}

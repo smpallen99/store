@@ -38,6 +38,7 @@ defmodule Store.Mixfile do
      {:phoenix_live_reload, "~> 1.0", only: :dev},
      {:gettext, "~> 0.11"},
      {:coherence, github: "smpallen99/coherence"},
+     {:whatwasit, github: "smpallen99/whatwasit"},
      {:cowboy, "~> 1.0"}]
   end
 

@@ -361,3 +361,145 @@ Update the show page
 <%= link "Back", to: product_path(@conn, :index) %>
 ```
 
+## Step 4 - Add Versioning
+
+Add the whatwasit project dependency, update the deps, and run the installer:
+
+```elixir
+# mix.exs
+  defp deps do
+     ...
+     {:whatwasit, github: "smpallen99/whatwasit"}
+     ...
+  end
+```
+
+```shell
+$ mix do deps.get, deps.compile, whatwasit.install
+
+```
+
+Following the installer instructions, update the product model:
+
+```elixir
+# web/models/product.ex
+defmodule Store.Product do
+  use Store.Web, :model
+  use Whatwasit   # add this
+  ...
+  def changeset(struct, params \\ %{}, opts \\ []) do
+    struct
+    |> cast(params, [:name, :description, :department, :price])
+    |> validate_required([:name, :description, :department, :price])
+    |> prepare_version   # add this
+  end
+end
+```
+
+Add support for whodoneit in the controller
+
+```elixir
+# web/controllers/product_controller.ex
+  ...
+  def update(conn, %{"id" => id, "product" => product_params}) do
+    product = Repo.get!(Product, id)
+    changeset = Product.changeset(product, product_params, whodoneit(conn))
+
+    ...
+  end
+
+  def delete(conn, %{"id" => id}) do
+    changeset = Repo.get!(Product, id)
+    |> Product.changeset(%{}, whodoneit(conn))
+
+    Repo.delete!(changeset)
+    ...
+  end
+
+  defp whodoneit(conn) do
+    # remove the password fields
+    whodoneit = Coherence.current_user(conn)
+    |> Store.Whatwasit.Version.remove_fields(
+       ~w(password password_confirmation password_hash)a)
+    [whodoneit: whodoneit]
+  end
+
+```
+
+Lets add the list of versions to the show page for a product, displaying the action and the name of the user who made the change.
+
+There is a convenience function for retrieving a list of versions for a specific model. However, that function returns the versioned model and not the action or whodoneit information. So, we will create a new module, copy that function and modify it.
+
+```elixir
+# web/models/version.ex
+defmodule Store.Version do
+  import Ecto.Query
+
+  # copied from deps/whatwasit/priv/templates/whatwasit.install/models/whatwasit/version_map.ex
+
+  @base Mix.Project.get |> Module.split |> Enum.reverse |> Enum.at(1)
+  @version_module Module.concat([@base, Whatwasit, Version])
+
+  def versions(schema, opts \\ []) do
+    repo = opts[:repo] || Application.get_env(:whatwasit, :repo)
+    id = schema.id
+    type = Whatwasit.Utils.item_type schema
+    Ecto.Query.where(@version_module, [a], a.item_id == ^id and a.item_type == ^type)
+    |> Ecto.Query.order_by(desc: :id)
+    |> repo.all
+    |> Enum.map(fn item ->
+      %{name: item.whodoneit["name"], action: item.action, object: Whatwasit.Utils.cast(schema, item.object)}
+    end)
+  end
+end
+```
+
+Create a new template to display the versions:
+
+```elixir
+# web/templates/product/product_version.html.eex
+<h3>Versions</h3>
+<table class="table">
+  <thead>
+    <tr>
+      <th>Action</th>
+      <th>User</th>
+      <th>Name</th>
+      <th>Description</th>
+      <th>Department</th>
+      <th>Price</th>
+    </tr>
+  </thead>
+  <tbody>
+    <%= for version <- Store.Version.versions(@product) do %>
+      <tr>
+        <td><%= version[:action] %>
+        <td><%= version[:name] %>
+        <td><%= version.object.name %>
+        <td><%= version.object.description %>
+        <td><%= version.object.department %>
+        <td><%= version.object.price %>
+      </td>
+    <% end %>
+  </tbody>
+</table>
+```
+
+Add render the template from the show page:
+
+```elixir
+# web/templates/product/show.html.eex
+  ...
+  <li>
+    <strong>Price:</strong>
+    <%= @product.price %>
+  </li>
+</ul>
+
+<%= if admin?(@conn) do %>
+  <%= render "product_versions.html", [product: @product] %>
+<% end %>
+...
+```
+
+Now start the server, login as admin and edit some products to see versionsing in action.
