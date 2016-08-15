@@ -38,7 +38,7 @@ defmodule Store.Router do
 
   scope "/", Store do
     pipe_through :browser
-    get "/", PageController, :index
+    get "/", ProductController, :index
     resources "/products", ProductController, only: [:index, :show]
   end
 

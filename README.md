@@ -231,3 +231,21 @@ User.changeset(%User{}, %{name: "Test User", email: "user@example.com", password
 |> Store.Repo.insert!
 |> Coherence.ControllerHelpers.confirm!```
 ...
+```
+
+Add some authentication links to the layout
+
+```elixir
+# web/templates/layout/app.html.eex
+    ...
+    <div class="container">
+      <header class="header">
+        <nav role="navigation">
+          <ul class="nav nav-pills pull-right">
+            <%= Store.Coherence.ViewHelpers.coherence_links(@conn, :layout) %>
+          </ul>
+        </nav>
+      </header>
+      ...
+```
+
