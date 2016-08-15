@@ -37,15 +37,15 @@ defmodule Store.Router do
   end
 
   scope "/", Store do
-    pipe_through :browser
-    get "/", PageController, :index
-    resources "/products", ProductController, only: [:index, :show]
-  end
-
-  scope "/", Store do
     pipe_through :protected
     # Add your protected routes here
     resources "/products", ProductController, except: [:index, :show]
+  end
+
+  scope "/", Store do
+    pipe_through :browser
+    get "/", ProductController, :index
+    resources "/products", ProductController, only: [:index, :show]
   end
 
 end

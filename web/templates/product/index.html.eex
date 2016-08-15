@@ -21,12 +21,18 @@
 
       <td class="text-right">
         <%= link "Show", to: product_path(@conn, :show, product), class: "btn btn-default btn-xs" %>
-        <%= link "Edit", to: product_path(@conn, :edit, product), class: "btn btn-default btn-xs" %>
-        <%= link "Delete", to: product_path(@conn, :delete, product), method: :delete, data: [confirm: "Are you sure?"], class: "btn btn-danger btn-xs" %>
+
+        <%= if authorized?(@conn, :edit) do %>
+          <%= link "Edit", to: product_path(@conn, :edit, product), class: "btn btn-default btn-xs" %>
+        <% end %>
+        <%= if authorized?(@conn, :delete) do %>
+          <%= link "Delete", to: product_path(@conn, :delete, product), method: :delete, data: [confirm: "Are you sure?"], class: "btn btn-danger btn-xs" %>
+        <% end %>
       </td>
     </tr>
 <% end %>
   </tbody>
 </table>
-
-<%= link "New product", to: product_path(@conn, :new) %>
+<%= if authorized?(@conn, :new) do %>
+  <%= link "New product", to: product_path(@conn, :new) %>
+<% end %>

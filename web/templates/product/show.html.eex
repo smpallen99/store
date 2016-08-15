@@ -24,5 +24,8 @@
 
 </ul>
 
-<%= link "Edit", to: product_path(@conn, :edit, @product) %>
+<%= if authorized?(@conn, :edit) do %>
+  <%= link "Edit", to: product_path(@conn, :edit, @product) %>
+  &nbsp; | &nbsp;
+<% end %>
 <%= link "Back", to: product_path(@conn, :index) %>

@@ -52,6 +52,7 @@ defmodule Store.Web do
       import Store.Router.Helpers
       import Store.ErrorHelpers
       import Store.Gettext
+      import Store.ViewHelpers
     end
   end
 

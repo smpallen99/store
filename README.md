@@ -231,6 +231,23 @@ User.changeset(%User{}, %{name: "Test User", email: "user@example.com", password
 |> Store.Repo.insert!
 |> Coherence.ControllerHelpers.confirm!```
 ...
+```
+
+Add some authentication links to the layout
+
+```elixir
+# web/templates/layout/app.html.eex
+    ...
+    <div class="container">
+      <header class="header">
+        <nav role="navigation">
+          <ul class="nav nav-pills pull-right">
+            <%= Store.Coherence.ViewHelpers.coherence_links(@conn, :layout) %>
+          </ul>
+        </nav>
+      </header>
+      ...
+```
 
 ## Step 3 - Authorization
 
@@ -238,3 +255,109 @@ We are going to add some authorization logic:
 
 * Ensure links and buttons are appropriate for users
 * Restrict actions based on admin field
+
+Create a new authorization module to handle all things authorization
+
+```elixir
+# lib/store/authorization.ex
+defmodule Store.Authorization do
+
+  import Phoenix.Controller
+  import Plug.Conn
+  import Store.Router.Helpers
+
+  def admin?(conn) do
+    case Coherence.current_user(conn) do
+      nil -> false
+      user -> user.admin
+    end
+  end
+
+  def authorized_link?(conn, :index), do: true
+  def authorized_link?(conn, :show), do: true
+  def authorized_link?(conn, _), do: admin?(conn)
+
+  # authorize plug
+  def authorize(conn, opts \\ []) do
+    if admin? conn do
+      conn
+    else
+      conn
+      |> put_flash(:error, "Unauthorized")
+      |> redirect(to: product_path(conn, :index))
+      |> halt
+    end
+  end
+end
+```
+
+Add the authorization plug to the products controller
+
+```elixir
+# web/controllers/product_controller.ex
+defmodule Store.ProductController do
+  use Store.Web, :controller
+  import Store.Authorization
+
+  plug :authorize when not action in [:index, :show]
+  ...
+end
+```
+
+Add a new view helpers module
+
+```elixir
+# web/views/view_helpers.ex
+defmodule Store.ViewHelpers do
+  def authorized?(conn, action), do: Store.Authorization.authorized_link?(conn, action)
+end
+```
+
+Make the view_helpers module available to all views.
+
+```elixir
+# web/web.ex
+
+  def view do
+    quote do
+      ...
+      import Store.Gettext
+      import Store.ViewHelpers   # add this
+    end
+  end
+```
+
+Update the products index page
+
+```elixir
+# web/templates/product/index.html.eex
+      ...
+      <td class="text-right">
+        <%= link "Show", to: product_path(@conn, :show, product), class: "btn btn-default btn-xs" %>
+
+        <%= if authorized?(@conn, :edit) do %>
+          <%= link "Edit", to: product_path(@conn, :edit, product), class: "btn btn-default btn-xs" %>
+        <% end %>
+        <%= if authorized?(@conn, :delete) do %>
+          <%= link "Delete", to: product_path(@conn, :delete, product), method: :delete, data: [confirm: "Are you sure?"], class: "btn btn-danger btn-xs" %>
+        <% end %>
+      </td>
+      ...
+
+<%= if authorized?(@conn, :new) do %>
+  <%= link "New product", to: product_path(@conn, :new) %>
+<% end %>
+```
+
+Update the show page
+
+```elixir
+# web/templates/product/show.html.eex
+...
+<%= if authorized?(@conn, :edit) do %>
+  <%= link "Edit", to: product_path(@conn, :edit, @product) %>
+  &nbsp; | &nbsp;
+<% end %>
+<%= link "Back", to: product_path(@conn, :index) %>
+```
+
