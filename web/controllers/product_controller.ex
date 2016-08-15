@@ -1,5 +1,8 @@
 defmodule Store.ProductController do
   use Store.Web, :controller
+  import Store.Authorization
+
+  plug :authorize when not action in [:index, :show]
 
   alias Store.Product
 

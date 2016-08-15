@@ -231,3 +231,10 @@ User.changeset(%User{}, %{name: "Test User", email: "user@example.com", password
 |> Store.Repo.insert!
 |> Coherence.ControllerHelpers.confirm!```
 ...
+
+## Step 3 - Authorization
+
+We are going to add some authorization logic:
+
+* Ensure links and buttons are appropriate for users
+* Restrict actions based on admin field
