@@ -63,3 +63,22 @@ $ iex -S mix phoenix.server
 
 Test the Product Model by loading `http:/localhost/products` in your browser
 
+## Step 2 - Add Coherence
+
+Add the Coherence Dependency
+
+```elixir
+# mix.exs
+  def deps do
+    ...
+    {:coherence, "~> 0.2"}
+    ...
+  end
+```
+
+Get and compile deps
+
+```shell
+$ mix do deps.get, deps.compile
+```
+
